@@ -18,6 +18,13 @@ function insert_team {
   fi
 }
 
+function insert_game {
+  WINNER_ID=$($PSQL "SELECT team_id FROM teams WHERE name = '$3'")
+  OPPONENT_ID=$($PSQL "SELECT team_id FROM teams WHERE name = '$4'")
+
+  $PSQL "INSERT INTO games (year, round, winner_id, opponent_id, winner_goals, opponent_goals) VALUES ($1, '$2', '$WINNER_ID', '$OPPONENT_ID', $5, $6)"
+}
+
 echo $($PSQL "TRUNCATE teams, games")
 
 cat games.csv | while IFS="," read YEAR ROUND WINNER OPPONENT WINNER_GOALS OPPONENT_GOALS
@@ -30,5 +37,10 @@ do
   if [[ $OPPONENT != "opponent" ]]
   then
     insert_team "$OPPONENT"
+  fi
+
+  if [[ $WINNER != "winner" ]]
+  then
+    insert_game $YEAR "$ROUND" "$WINNER" "$OPPONENT" $WINNER_GOALS $OPPONENT_GOALS
   fi
 done
